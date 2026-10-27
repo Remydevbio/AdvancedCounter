@@ -50,7 +50,7 @@ public final class ImageLoader {
 			if (f.getName().startsWith(".")) continue;
 			if (f.isDirectory()) {
 				if (recursive && !f.getAbsoluteFile().equals(skip) && !f.getName().endsWith("_annotations")) collect(f, exts, true, skip, out);
-			} else if (exts.contains(ext(f)) && !f.getName().endsWith("_overlay.png")) out.add(f);
+			} else if (exts.contains(ext(f)) && !f.getName().endsWith("_overlay.png") && !f.getName().endsWith("_overlay.jpg")) out.add(f);
 		}
 	}
 

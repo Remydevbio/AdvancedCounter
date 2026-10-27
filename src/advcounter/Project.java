@@ -64,7 +64,7 @@ public class Project {
 	public boolean recursive = false;
 	public String extensions = DEFAULT_EXTENSIONS;
 	public String zMode = Z_STACK;
-	public boolean autoContrast = true, saveOverlayPng = true, saveRoiSet = true, showAllSlices = false;
+	public boolean autoContrast = true, saveOverlay = true, saveRoiSet = true, showAllSlices = false;
 	public String regionTool = "Selection Brush Tool";
 	public int lastImage = 0, nextId = 1;
 	public List<RegionClass> regions = new ArrayList<>();
@@ -158,7 +158,7 @@ public class Project {
 		m.put("extensions", extensions);
 		m.put("zMode", zMode);
 		m.put("autoContrast", autoContrast);
-		m.put("saveOverlayPng", saveOverlayPng);
+		m.put("saveOverlay", saveOverlay);
 		m.put("saveRoiSet", saveRoiSet);
 		m.put("showAllSlices", showAllSlices);
 		m.put("regionTool", regionTool);
@@ -211,7 +211,7 @@ public class Project {
 		p.extensions = Json.str(m, "extensions", DEFAULT_EXTENSIONS);
 		p.zMode = Json.str(m, "zMode", Z_STACK);
 		p.autoContrast = Json.bool(m, "autoContrast", true);
-		p.saveOverlayPng = Json.bool(m, "saveOverlayPng", true);
+		p.saveOverlay = Json.bool(m, "saveOverlay", Json.bool(m, "saveOverlayPng", true));
 		p.saveRoiSet = Json.bool(m, "saveRoiSet", true);
 		p.showAllSlices = Json.bool(m, "showAllSlices", false);
 		p.regionTool = Json.str(m, "regionTool", p.regionTool);

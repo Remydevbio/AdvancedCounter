@@ -50,7 +50,7 @@ public class SetupDialog extends JDialog {
 	// general
 	private final JTextField projName = new JTextField(20), projDir = new JTextField(28), imgDir = new JTextField(28), exts = new JTextField(28);
 	private final JCheckBox recursive = new JCheckBox("Include subfolders"), autoContrast = new JCheckBox("Auto brightness/contrast on each channel when opening"),
-			png = new JCheckBox("Save flattened overlay PNG per image"), roiset = new JCheckBox("Save Fiji RoiSet .zip per image");
+			png = new JCheckBox("Save flattened overlay JPEG per image"), roiset = new JCheckBox("Save Fiji RoiSet .zip per image");
 	private final JComboBox<String> zMode = new JComboBox<>(new String[]{"Z-stack counted as one image (points keep their slice)", "Maximum intensity projection"});
 
 	private SetupDialog(Window owner, Project p, boolean creating) {
@@ -118,7 +118,7 @@ public class SetupDialog extends JDialog {
 		exts.setText(p.extensions);
 		recursive.setSelected(p.recursive);
 		autoContrast.setSelected(p.autoContrast);
-		png.setSelected(p.saveOverlayPng);
+		png.setSelected(p.saveOverlay);
 		roiset.setSelected(p.saveRoiSet);
 		zMode.setSelectedIndex(Project.Z_MAX.equals(p.zMode) ? 1 : 0);
 		if (!creating) {
@@ -396,7 +396,7 @@ public class SetupDialog extends JDialog {
 		p.extensions = exts.getText().trim().isEmpty() ? Project.DEFAULT_EXTENSIONS : exts.getText().trim();
 		p.zMode = zMode.getSelectedIndex() == 1 ? Project.Z_MAX : Project.Z_STACK;
 		p.autoContrast = autoContrast.isSelected();
-		p.saveOverlayPng = png.isSelected();
+		p.saveOverlay = png.isSelected();
 		p.saveRoiSet = roiset.isSelected();
 		List<Project.RegionClass> rs = new ArrayList<>();
 		for (Row r : regionRows) {

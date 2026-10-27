@@ -331,7 +331,8 @@ public class GuiTest implements PlugIn {
 		eq(e0.status, Project.ANNOTATED, "image 1 marked annotated");
 		ok(p.annotationFile(e0).exists(), "annotation JSON saved");
 		ok(new File(p.annotationDir(), e0.key() + "_RoiSet.zip").exists(), "Fiji RoiSet saved");
-		ok(new File(p.annotationDir(), e0.key() + "_overlay.png").exists(), "overlay PNG saved");
+		ok(new File(p.annotationDir(), e0.key() + "_overlay.jpg").exists(), "overlay JPEG saved");
+		ok(!new File(p.annotationDir(), e0.key() + "_overlay.png").exists(), "no overlay PNG written");
 		List<Map<String, String>> rows = csv(p);
 		eq(rows.size(), 4, "CSV has one row per image");
 		Map<String, String> row = rows.get(0);
@@ -345,8 +346,8 @@ public class GuiTest implements PlugIn {
 		eq(row.get("B_fraction_ROI1"), "0.75", "CSV formula");
 		eq(rows.get(1).get("status"), Project.NOT_STARTED, "next image not started yet in CSV");
 		eq(rows.get(1).get("ROI1_A"), "NA", "not started image NA");
-		ImagePlus flat = IJ.openImage(new File(p.annotationDir(), e0.key() + "_overlay.png").getPath());
-		ok(flat != null && flat.getWidth() == 400 && flat.getBitDepth() == 24, "overlay PNG is a flattened RGB image");
+		ImagePlus flat = IJ.openImage(new File(p.annotationDir(), e0.key() + "_overlay.jpg").getPath());
+		ok(flat != null && flat.getWidth() == 400 && flat.getBitDepth() == 24, "overlay JPEG is a flattened RGB image");
 
 		// z-stack image
 		eq(s.imp.getNSlices(), 3, "z-stack opened as stack");

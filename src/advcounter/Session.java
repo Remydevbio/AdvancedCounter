@@ -2,6 +2,7 @@ package advcounter;
 
 import ij.*;
 import ij.gui.*;
+import ij.io.FileSaver;
 import ij.measure.Calibration;
 
 import javax.swing.*;
@@ -148,7 +149,7 @@ public class Session implements KeyEventDispatcher {
 		panel.refresh();
 	}
 
-	/** Saves annotation, ROI set, overlay PNG, project file and results CSV. */
+	/** Saves annotation, ROI set, overlay JPEG, project file and results CSV. */
 	public boolean save() {
 		if (imp == null || ann == null) return true;
 		try {
@@ -159,7 +160,7 @@ public class Session implements KeyEventDispatcher {
 			ann.save(project, entry);
 			boolean stack = imp.getStackSize() > 1;
 			if (project.saveRoiSet) ann.saveRoiSet(new File(project.annotationDir(), entry.key() + "_RoiSet.zip"), project, stack);
-			if (project.saveOverlayPng) saveOverlayPng();
+			if (project.saveOverlay) saveOverlayJpeg();
 			project.lastImage = index;
 			project.save();
 			Results.write(project);
@@ -172,8 +173,9 @@ public class Session implements KeyEventDispatcher {
 		}
 	}
 
-	void saveOverlayPng() {
-		if ((long) imp.getWidth() * imp.getHeight() > 100_000_000L) { IJ.log("Advanced Counter: overlay PNG skipped (image too large): " + entry.displayName()); return; }
+	/** Flattened overlay as JPEG (much smaller than PNG). Replaces an overlay PNG written by older versions. */
+	void saveOverlayJpeg() {
+		if ((long) imp.getWidth() * imp.getHeight() > 100_000_000L) { IJ.log("Advanced Counter: overlay JPEG skipped (image too large): " + entry.displayName()); return; }
 		Roi roi = imp.getRoi();
 		imp.deleteRoi();
 		Overlay normal = imp.getOverlay();
@@ -181,8 +183,10 @@ public class Session implements KeyEventDispatcher {
 		ImagePlus flat = imp.flatten();
 		imp.setOverlay(normal);
 		if (roi != null) imp.setRoi(roi, false);
-		IJ.saveAs(flat, "PNG", new File(project.annotationDir(), entry.key() + "_overlay.png").getPath());
+		new FileSaver(flat).saveAsJpeg(new File(project.annotationDir(), entry.key() + "_overlay.jpg").getPath());
 		flat.close();
+		File oldPng = new File(project.annotationDir(), entry.key() + "_overlay.png");
+		if (oldPng.exists()) oldPng.delete();
 	}
 
 	// ---------------------------------------------------------------- classes and regions

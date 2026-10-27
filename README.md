@@ -17,7 +17,7 @@ Restart Fiji, then open **Plugins › Advanced Counter**: *New Project…*, *Ope
 
 *New Project…* asks for:
 
-- **General:** project name, image folder, where to save the project, subfolders, file extensions, Z-stack mode, auto brightness/contrast, and the RoiSet/PNG exports.
+- **General:** project name, image folder, where to save the project, subfolders, file extensions, Z-stack mode, auto brightness/contrast, and the RoiSet/JPEG exports.
 - **Regions:** e.g. ROI1, ROI2 (name, colour).
 - **Counters:** e.g. Counter1, Counter2 (name, colour, marker, size).
 - **Calculations** (optional; can be added later).
@@ -38,7 +38,7 @@ Files written next to the project file:
 | `<name>_results.csv` | Master results table, rewritten after every save |
 | `<name>_annotations/<id>_<image>.json` | Region shapes and points of one image (plugin format) |
 | `<name>_annotations/<id>_<image>_RoiSet.zip` | Same data as standard Fiji ROIs (open in the ROI Manager without the plugin) |
-| `<name>_annotations/<id>_<image>_overlay.png` | Flattened image with annotations (skipped above 100 Mpixel) |
+| `<name>_annotations/<id>_<image>_overlay.jpg` | Flattened image with annotations, JPEG (skipped above 100 Mpixel; an overlay PNG from an older version is replaced) |
 
 Image paths are stored relative to the project, so a project folder can be moved together with its images.
 
@@ -105,7 +105,7 @@ Open *Calculations…* in the panel or the Calculations tab of the project dialo
 ## Development and tests
 
 - `./build.sh` runs `test/CoreTest.java` headless (88 checks): geometry and exclusivity, pixel-exact areas, metrics, save/reload, RoiSet, formulas, NA logic, CSV, scanning and opening of TIFF/PNG/RGB/hyperstacks and multi-position OME-TIFF via Bio-Formats, max projection, auto contrast.
-- `./gui-test.sh` installs the jar and runs `test/advcounter/GuiTest.java` inside the real Fiji (118 checks). It covers:
+- `./gui-test.sh` installs the jar and runs `test/advcounter/GuiTest.java` inside the real Fiji (119 checks). It covers:
   - the brush and polygon regions with overlap removal, and all point gestures and undo;
   - navigation and saving, the CSV and exports, z-stack points;
   - reopening a project, adding a class or calculation mid-project, verify-mode edits, exclusion;
