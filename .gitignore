@@ -2,3 +2,9 @@ build/
 test-data/
 *.class
 code_log/
+code_logs/
+*.log
+.env
+.env.*
+!.env.example
+.claude/settings.local.json
