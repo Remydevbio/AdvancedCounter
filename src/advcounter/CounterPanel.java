@@ -13,7 +13,7 @@ import java.util.List;
 
 /** Side panel docked to the right of the screen; the image window fills the space to its left. */
 public class CounterPanel extends JFrame {
-	static final int WIDTH = 360;
+	static final int WIDTH = 400;
 	final Session s;
 	final Project p;
 	private final JLabel imageLabel = new JLabel(), statusLabel = new JLabel(), message = new JLabel(" ");
@@ -36,22 +36,23 @@ public class CounterPanel extends JFrame {
 		addWindowListener(new WindowAdapter() {
 			@Override public void windowClosing(WindowEvent e) { closeProject(); }
 		});
-		JPanel root = new JPanel();
-		root.setLayout(new BoxLayout(root, BoxLayout.Y_AXIS));
+		VBox root = new VBox();
 		root.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
 
 		JPanel head = section("Image");
 		imageLabel.setFont(imageLabel.getFont().deriveFont(Font.BOLD));
+		jump.setPrototypeDisplayValue("\u25CB some_image_name_of_typical_length.czi");
 		head.add(left(imageLabel));
-		head.add(left(statusLabel));
+		head.add(statusLabel);
 		head.add(jump);
 		jump.addActionListener(e -> { if (!updating && jump.getSelectedIndex() >= 0 && jump.getSelectedIndex() != s.index) s.open(jump.getSelectedIndex()); });
-		JPanel nav = new JPanel(new GridLayout(1, 3, 3, 0));
-		nav.add(prev); nav.add(next); nav.add(nextUnf);
+		JPanel nav = new JPanel(new GridLayout(1, 2, 3, 0));
+		nav.add(prev); nav.add(next);
 		prev.addActionListener(e -> s.previous());
 		next.addActionListener(e -> s.next());
 		nextUnf.addActionListener(e -> s.nextUnfinished());
 		head.add(nav);
+		head.add(nextUnf);
 		JPanel mode = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
 		ButtonGroup g = new ButtonGroup();
 		g.add(annotate); g.add(verify);
@@ -80,23 +81,23 @@ public class CounterPanel extends JFrame {
 			if (s.active != null && s.isRegion(s.active)) s.selectRegionTool();
 		});
 		regions.add(tool);
-		regions.add(left(hint("Shift+draw adds, Ctrl/Alt subtracts. Overlaps with other regions are removed (existing region wins).")));
+		regions.add((hint("Shift+draw adds, Ctrl/Alt subtracts. Overlaps with other regions are removed (existing region wins).")));
 		root.add(regions);
 
 		JPanel points = section("Counters (points)");
 		points.add(pointBox);
-		points.add(left(hint("Click add · drag move · Ctrl/right-click delete · Shift+click reassign · Ctrl+Z undo · keys 1–9 select class")));
+		points.add((hint("Click add · drag move · Ctrl+click delete · Shift+click reassign · Ctrl+Z undo · keys 1–9 select class")));
 		root.add(points);
 
 		JPanel disp = section("Display");
-		JPanel d1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+		JPanel d1 = new JPanel(new GridLayout(0, 2, 3, 0));
 		d1.add(fill); d1.add(labels); d1.add(allSlices);
 		fill.addActionListener(e -> { s.showFill = fill.isSelected(); s.refreshOverlay(); });
 		labels.addActionListener(e -> { s.showLabels = labels.isSelected(); s.refreshOverlay(); });
 		allSlices.addActionListener(e -> { p.showAllSlices = allSlices.isSelected(); s.refreshOverlay(); });
 		disp.add(d1);
 		JPanel d2 = new JPanel(new GridLayout(1, 3, 3, 0));
-		JButton bc = new JButton("Brightness/Contrast"), ch = new JButton("Channels"), auto = new JButton("Auto contrast");
+		JButton bc = new JButton("B&C"), ch = new JButton("Channels"), auto = new JButton("Auto contrast");
 		bc.addActionListener(e -> runOnImage("Brightness/Contrast..."));
 		ch.addActionListener(e -> runOnImage("Channels Tool..."));
 		auto.addActionListener(e -> { if (s.imp != null) { ImageLoader.autoContrast(s.imp); s.imp.updateAndDraw(); } });
@@ -107,10 +108,13 @@ public class CounterPanel extends JFrame {
 		JPanel res = section("Current image results");
 		values.setEditable(false);
 		values.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 11));
-		res.add(new JScrollPane(values));
+		JScrollPane vs = new JScrollPane(values);
+		vs.setPreferredSize(new Dimension(300, 140));
+		vs.setMinimumSize(new Dimension(100, 140));
+		res.add(vs);
 		root.add(res);
 
-		JPanel bottom = new JPanel(new GridLayout(2, 3, 3, 3));
+		JPanel bottom = new JPanel(new GridLayout(3, 2, 3, 3));
 		JButton undo = new JButton("Undo"), save = new JButton("Save"), edit = new JButton("Edit project…"),
 				calc = new JButton("Calculations…"), rescan = new JButton("Rescan folder"), close = new JButton("Close project");
 		undo.addActionListener(e -> s.undo());
@@ -122,6 +126,7 @@ public class CounterPanel extends JFrame {
 		bottom.add(undo); bottom.add(save); bottom.add(edit); bottom.add(calc); bottom.add(rescan); bottom.add(close);
 		root.add(bottom);
 		root.add(left(message));
+		root.end();
 
 		setContentPane(new JScrollPane(root, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER));
 		rebuild();
@@ -131,22 +136,51 @@ public class CounterPanel extends JFrame {
 
 	static Rectangle screen() { return GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds(); }
 
-	static JPanel section(String title) {
-		JPanel q = new JPanel();
-		q.setLayout(new BoxLayout(q, BoxLayout.Y_AXIS));
+	/** Vertical stack: each added component is a full-width row; tracks the scroll viewport width. */
+	static class VBox extends JPanel implements Scrollable {
+		VBox() { super(new GridBagLayout()); }
+
+		@Override protected void addImpl(Component c, Object cons, int index) {
+			if (cons == null) {
+				GridBagConstraints g = new GridBagConstraints();
+				g.gridx = 0; g.gridy = GridBagConstraints.RELATIVE; g.weightx = 1;
+				g.fill = GridBagConstraints.HORIZONTAL; g.anchor = GridBagConstraints.NORTHWEST;
+				g.insets = new Insets(1, 0, 1, 0);
+				cons = g;
+			}
+			super.addImpl(c, cons, index);
+		}
+
+		/** Pushes rows to the top. */
+		void end() {
+			GridBagConstraints g = new GridBagConstraints();
+			g.gridx = 0; g.gridy = GridBagConstraints.RELATIVE; g.weighty = 1;
+			add(Box.createVerticalGlue(), g);
+		}
+
+		public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+		public int getScrollableUnitIncrement(Rectangle r, int o, int d) { return 16; }
+		public int getScrollableBlockIncrement(Rectangle r, int o, int d) { return 96; }
+		public boolean getScrollableTracksViewportWidth() { return true; }
+		public boolean getScrollableTracksViewportHeight() { return false; }
+	}
+
+	static VBox section(String title) {
+		VBox q = new VBox();
 		q.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), title, TitledBorder.LEFT, TitledBorder.TOP));
-		q.setAlignmentX(LEFT_ALIGNMENT);
 		return q;
 	}
 
+	/** Lets long single-line text shrink (truncated with an ellipsis) instead of widening the panel. */
 	static JComponent left(JComponent c) {
-		JPanel q = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
-		q.add(c);
-		return q;
+		Dimension d = c.getPreferredSize();
+		c.setPreferredSize(new Dimension(40, Math.max(d.height, 18)));
+		c.setMinimumSize(new Dimension(20, Math.max(d.height, 18)));
+		return c;
 	}
 
 	static JLabel hint(String t) {
-		JLabel l = new JLabel("<html><div style='width:300px'>" + t + "</div></html>");
+		JLabel l = new JLabel("<html><div style='width:290px'>" + t + "</div></html>");
 		l.setFont(l.getFont().deriveFont(Font.PLAIN, 11f));
 		return l;
 	}
@@ -224,7 +258,7 @@ public class CounterPanel extends JFrame {
 			if (e == null) { imageLabel.setText("No image"); statusLabel.setText(s.summary()); }
 			else {
 				imageLabel.setText((s.index + 1) + " / " + p.images.size() + ": " + e.displayName() + (s.busy ? "  (loading…)" : s.imp == null ? "  (closed)" : ""));
-				statusLabel.setText("<html>Status: <b>" + e.status + "</b>" + (p.needsReview(e) ? " — <font color='#c06000'>needs review (new classes)</font>" : "") + "</html>");
+				statusLabel.setText("<html><div style='width:290px'>Status: <b>" + e.status + "</b>" + (p.needsReview(e) ? " — <font color='#c06000'>needs review (new classes)</font>" : "") + "</div></html>");
 			}
 			exclude.setSelected(e != null && Project.EXCLUDED.equals(e.status));
 			annotate.setSelected(!s.verifyMode);
@@ -250,7 +284,7 @@ public class CounterPanel extends JFrame {
 					if (!p.regions.isEmpty()) parts.add("outside " + m.getOrDefault("count:outside:" + c.id, 0.0).longValue());
 					if (!parts.isEmpty()) v += "  (" + String.join(", ", parts) + ")";
 				}
-				b.setText("<html><b>" + key + "</b>&nbsp; " + esc(c.name) + "&nbsp;&nbsp;<font color='#555555'>" + esc(v) + "</font></html>");
+				b.setText("<html><div style='width:290px'><b>" + key + "</b>&nbsp; " + esc(c.name) + "&nbsp;&nbsp;<font color='#555555'>" + esc(v) + "</font></div></html>");
 			}
 			values.setText(currentValues(m));
 			values.setCaretPosition(0);

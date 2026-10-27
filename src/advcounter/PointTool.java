@@ -4,12 +4,11 @@ import ij.ImagePlus;
 import ij.gui.ImageCanvas;
 import ij.plugin.tool.PlugInTool;
 
-import javax.swing.SwingUtilities;
 import java.awt.event.MouseEvent;
 
 /**
  * Toolbar tool for counting. Click: add point of the active counter. Drag an existing point: move it.
- * Ctrl+click or right-click: delete nearest point. Shift+click: reassign nearest point to the active counter.
+ * Ctrl+click: delete nearest point (right-click is reserved by ImageJ for its popup menu). Shift+click: reassign nearest point to the active counter.
  */
 public class PointTool extends PlugInTool {
 	public static final String NAME = "Advanced Counter points";
@@ -34,7 +33,7 @@ public class PointTool extends PlugInTool {
 		int x = c.offScreenX(e.getX()), y = c.offScreenY(e.getY());
 		int near = s.nearest(x, y, PICK_RADIUS / c.getMagnification());
 		dragging = -1;
-		if (e.isControlDown() || SwingUtilities.isRightMouseButton(e)) {
+		if (e.isControlDown()) {
 			if (near >= 0) s.removePoint(near);
 		} else if (e.isShiftDown()) {
 			if (near >= 0) s.reassign(near);

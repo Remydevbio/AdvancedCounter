@@ -216,12 +216,23 @@ public class Session implements KeyEventDispatcher {
 		String t = project.regionTool;
 		Toolbar tb = Toolbar.getInstance();
 		if (tb == null) return;
-		if (tb.setTool(t)) return;
+		if (setTool(tb, t)) return;
 		if (t.contains("Brush Tool") && Menus.getCommands().containsKey("Install Brush and Smart Brush")) {
-			IJ.run("Install Brush and Smart Brush");
-			if (tb.setTool(t)) return;
+			IJ.run("Install Brush and Smart Brush"); // installs its tools via invokeLater
+			EventQueue.invokeLater(() -> { if (!setTool(tb, t)) tb.setTool("polygon"); });
+			return;
 		}
+		IJ.showStatus("Advanced Counter: tool '" + t + "' not available, using polygon");
 		tb.setTool("polygon");
+	}
+
+	/** Selects a built-in tool by name, or a plugin tool by its exact name (setTool(String) maps any "*brush*" to ImageJ's brush). */
+	static boolean setTool(Toolbar tb, String name) {
+		if (!name.contains(" ")) return tb.setTool(name);
+		int id = tb.getToolId(name);
+		if (id < 0) return false;
+		tb.setTool(id);
+		return name.equals(Toolbar.getToolName());
 	}
 
 	/** Stores the current selection as the active region (existing other regions win). */

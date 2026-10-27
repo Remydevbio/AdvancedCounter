@@ -27,6 +27,8 @@ public class Annotation {
 	public int width, height;
 	public final Map<String, Area> regions = new LinkedHashMap<>();
 	public final List<Pt> points = new ArrayList<>();
+	/** Pixel counts of stored areas; stored Areas are replaced, never mutated, so identity is a safe key. */
+	private final Map<Area, Long> countCache = new IdentityHashMap<>();
 
 	public Annotation(int width, int height) { this.width = width; this.height = height; }
 
@@ -126,7 +128,14 @@ public class Annotation {
 	public Map<String, Double> metrics(Project project) {
 		Map<String, Double> m = new LinkedHashMap<>();
 		for (Project.RegionClass r : project.regions) {
-			m.put("area:" + r.id, (double) pixelCount(regions.get(r.id)));
+			Area ra = regions.get(r.id);
+			Long px = ra == null ? Long.valueOf(0) : countCache.get(ra);
+			if (px == null) {
+				px = pixelCount(ra);
+				if (countCache.size() > 64) countCache.clear(); // drop counts of replaced areas
+				countCache.put(ra, px);
+			}
+			m.put("area:" + r.id, (double) px);
 			for (Project.PointClass p : project.points) m.put("count:" + r.id + ":" + p.id, 0.0);
 		}
 		for (Project.PointClass p : project.points) {

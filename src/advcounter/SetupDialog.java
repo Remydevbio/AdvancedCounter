@@ -138,7 +138,7 @@ public class SetupDialog extends JDialog {
 		y = row(g, c, y, "", png, null);
 		c.gridy = y; c.gridx = 0; c.gridwidth = 3; c.weighty = 1;
 		g.add(CounterPanel.hint("Each position/series of a multi-position file (e.g. CZI scenes) is a separate image. Multichannel images open as composites. "
-				+ "Results are written to <project>_results.csv next to the project file after every save."), c);
+				+ "Results are written to &lt;project&gt;_results.csv next to the project file after every save."), c);
 		return g;
 	}
 
